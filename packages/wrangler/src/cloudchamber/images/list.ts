@@ -31,7 +31,7 @@ export const imagesCommand = (
 	return yargs
 		.command(
 			"list",
-			"perform operations on images in your Cloudflare managed registry",
+			"List images in the Cloudflare managed registry",
 			(args) => listImagesYargs(args),
 			(args) =>
 				handleFailure(
@@ -44,7 +44,7 @@ export const imagesCommand = (
 		)
 		.command(
 			"delete [image]",
-			"remove an image from your Cloudflare managed registry",
+			"Remove an image from the Cloudflare managed registry",
 			(args) => deleteImageYargs(args),
 			(args) =>
 				handleFailure(
@@ -74,18 +74,25 @@ function listImagesYargs(yargs: CommonYargsArgvJSON) {
 
 async function handleDeleteImageCommand(
 	args: StrictYargsOptionsToInterfaceJSON<typeof deleteImageYargs>,
-	_config: Config
+	config: Config
 ) {
 	try {
 		if (!args.image.includes(":")) {
 			throw new Error(`Must provide a tag to delete`);
 		}
-		return await promiseSpinner(
+
+		const digest = await promiseSpinner(
 			getCreds().then(async (creds) => {
+				const accountId = config.account_id || (await getAccountId(config));
 				const url = new URL(`https://${getCloudflareContainerRegistry()}`);
 				const baseUrl = `${url.protocol}//${url.host}`;
 				const [image, tag] = args.image.split(":");
-				await deleteTag(baseUrl, image, tag, creds);
+				const digest = await deleteTag(
+					baseUrl,
+					`${accountId}/${image}`,
+					tag,
+					creds
+				);
 
 				// trigger gc
 				const gcUrl = `${baseUrl}/v2/gc/layers`;
@@ -101,10 +108,13 @@ async function handleDeleteImageCommand(
 						`Failed to delete image ${args.image}: ${gcResponse.status} ${gcResponse.statusText}`
 					);
 				}
-				logger.log(`Deleted tag: ${args.image}`);
+
+				return digest;
 			}),
-			{ message: "Deleting", json: args.json }
+			{ message: `Deleting ${args.image}`, json: args.json }
 		);
+
+		logger.log(`Deleted ${args.image} (${digest})`);
 	} catch (error) {
 		logger.log(`Error when removing image: ${error}`);
 	}
@@ -115,7 +125,7 @@ async function handleListImagesCommand(
 	config: Config
 ) {
 	try {
-		return await promiseSpinner(
+		const responses = await promiseSpinner(
 			getCreds().then(async (creds) => {
 				const repos = await listRepos(creds);
 				const responses: TagsResponse[] = [];
@@ -132,16 +142,18 @@ async function handleListImagesCommand(
 					}
 				}
 
-				await ListTags(responses, false, args.json);
+				return responses;
 			}),
 			{ message: "Listing", json: args.json }
 		);
+
+		await listImages(responses, false, args.json);
 	} catch (error) {
 		logger.log(`Error listing images: ${error}`);
 	}
 }
 
-async function ListTags(
+async function listImages(
 	responses: TagsResponse[],
 	digests: boolean = false,
 	json: boolean = false
@@ -222,7 +234,7 @@ async function deleteTag(
 	image: string,
 	tag: string,
 	creds: string
-) {
+): Promise<string> {
 	const manifestAcceptHeader =
 		"application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json";
 	const manifestUrl = `${baseUrl}/v2/${image}/manifests/${tag}`;
@@ -236,13 +248,13 @@ async function deleteTag(
 	});
 	if (!headResponse.ok) {
 		throw new Error(
-			`failed to retrieve tag info for ${tag}: ${headResponse.status} ${headResponse.statusText}`
+			`Failed to retrieve info for ${image}:${tag}: ${headResponse.status} ${headResponse.statusText}`
 		);
 	}
 
 	const digest = headResponse.headers.get("Docker-Content-Digest");
 	if (!digest) {
-		throw new Error(`Digest not found for tag "${tag}".`);
+		throw new Error(`Digest not found for ${image}:${tag}.`);
 	}
 
 	const deleteUrl = `${baseUrl}/v2/${image}/manifests/${tag}`;
@@ -256,9 +268,11 @@ async function deleteTag(
 
 	if (!deleteResponse.ok) {
 		throw new Error(
-			`Failed to delete tag "${tag}" (digest: ${digest}): ${deleteResponse.status} ${deleteResponse.statusText}`
+			`Failed to delete ${image}:${tag} (digest: ${digest}): ${deleteResponse.status} ${deleteResponse.statusText}`
 		);
 	}
+
+	return digest;
 }
 
 async function getCreds(): Promise<string> {

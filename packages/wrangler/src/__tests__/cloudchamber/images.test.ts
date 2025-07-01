@@ -181,7 +181,7 @@ describe("cloudchamber image list", () => {
 		expect(std.out).toMatchInlineSnapshot(`
 			"wrangler cloudchamber images list
 
-			perform operations on images in your Cloudflare managed registry
+			List images in the Cloudflare managed registry
 
 			GLOBAL FLAGS
 			  -c, --config   Path to Wrangler configuration file  [string]
@@ -478,7 +478,8 @@ describe("cloudchamber image list", () => {
 					tags: t,
 				});
 			}),
-			http.head("*/v2/:image/manifests/:tag", async ({ params }) => {
+			http.head("*/v2/:accountId/:image/manifests/:tag", async ({ params }) => {
+				expect(params["accountId"]).toEqual("some-account-id");
 				const image = String(params["image"]);
 				expect(image === "one");
 				const tag = String(params["tag"]);
@@ -488,20 +489,26 @@ describe("cloudchamber image list", () => {
 					headers: { "Docker-Content-Digest": "some-digest" },
 				});
 			}),
-			http.delete("*/v2/:image/manifests/:tag", async ({ params }) => {
-				const image = String(params["image"]);
-				expect(image === "one");
-				const tag = String(params["tag"]);
-				expect(tag === "hundred");
-				return new HttpResponse("", { status: 200 });
-			}),
+			http.delete(
+				"*/v2/:accountId/:image/manifests/:tag",
+				async ({ params }) => {
+					expect(params["accountId"]).toEqual("some-account-id");
+					const image = String(params["image"]);
+					expect(image === "one");
+					const tag = String(params["tag"]);
+					expect(tag === "hundred");
+					return new HttpResponse("", { status: 200 });
+				}
+			),
 			http.put("*/v2/gc/layers", async () => {
 				return new HttpResponse("", { status: 200 });
 			})
 		);
 		await runWrangler("cloudchamber images delete one:hundred");
 		expect(std.err).toMatchInlineSnapshot(`""`);
-		expect(std.out).toMatchInlineSnapshot(`"Deleted tag: one:hundred"`);
+		expect(std.out).toMatchInlineSnapshot(
+			`"Deleted one:hundred (some-digest)"`
+		);
 	});
 	it("should error when provided a repo without a tag", async () => {
 		setIsTTY(false);
