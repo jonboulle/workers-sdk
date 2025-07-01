@@ -5,7 +5,7 @@ import {
 	pushYargs,
 } from "../cloudchamber/build";
 import { handleFailure } from "../cloudchamber/common";
-import { imagesCommand } from "../cloudchamber/images/list";
+import { imagesCommand } from "../cloudchamber/images/images";
 import {
 	deleteCommand,
 	deleteYargs,
