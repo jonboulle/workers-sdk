@@ -87,12 +87,7 @@ async function handleDeleteImageCommand(
 				const url = new URL(`https://${getCloudflareContainerRegistry()}`);
 				const baseUrl = `${url.protocol}//${url.host}`;
 				const [image, tag] = args.image.split(":");
-				const digest_ = await deleteTag(
-					baseUrl,
-					`${accountId}/${image}`,
-					tag,
-					creds
-				);
+				const digest_ = await deleteTag(baseUrl, accountId, image, tag, creds);
 
 				// trigger gc
 				const gcUrl = `${baseUrl}/v2/gc/layers`;
@@ -231,13 +226,14 @@ async function listRepos(creds: string): Promise<string[]> {
 
 async function deleteTag(
 	baseUrl: string,
+	accountId: string,
 	image: string,
 	tag: string,
 	creds: string
 ): Promise<string> {
 	const manifestAcceptHeader =
 		"application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json";
-	const manifestUrl = `${baseUrl}/v2/${image}/manifests/${tag}`;
+	const manifestUrl = `${baseUrl}/v2/${accountId}/${image}/manifests/${tag}`;
 	// grab the digest for this tag
 	const headResponse = await fetch(manifestUrl, {
 		method: "HEAD",
@@ -257,7 +253,7 @@ async function deleteTag(
 		throw new Error(`Digest not found for ${image}:${tag}.`);
 	}
 
-	const deleteUrl = `${baseUrl}/v2/${image}/manifests/${tag}`;
+	const deleteUrl = `${baseUrl}/v2/${accountId}/${image}/manifests/${tag}`;
 	const deleteResponse = await fetch(deleteUrl, {
 		method: "DELETE",
 		headers: {
