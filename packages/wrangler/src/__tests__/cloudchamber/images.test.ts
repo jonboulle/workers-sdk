@@ -1,3 +1,4 @@
+import { getCloudflareContainerRegistry } from "@cloudflare/containers-shared";
 import { http, HttpResponse } from "msw";
 import patchConsole from "patch-console";
 import { mockAccountId, mockApiToken } from "../helpers/mock-account-id";
@@ -110,8 +111,7 @@ describe("cloudchamber image", () => {
 			http.delete(
 				"*/registries/:domain",
 				async ({ params }) => {
-					const domain = String(params["domain"]);
-					expect(domain === "docker.io");
+					expect(params.domain).toEqual("docker.io");
 					return HttpResponse.json({});
 				},
 				{ once: true }
@@ -164,6 +164,8 @@ describe("cloudchamber image list", () => {
 	const std = mockConsoleMethods();
 	const { setIsTTY } = useMockIsTTY();
 
+	const REGISTRY = getCloudflareContainerRegistry();
+
 	mockAccountId();
 	mockApiToken();
 	beforeEach(mockAccount);
@@ -206,11 +208,10 @@ describe("cloudchamber image list", () => {
 
 		msw.use(
 			http.post("*/registries/:domain/credentials", async ({ params }) => {
-				const domain = String(params["domain"]);
-				expect(domain === "docker.io");
+				expect(params.domain).toEqual(REGISTRY);
 				return HttpResponse.json({
 					account_id: "1234",
-					registry_host: "docker.io",
+					registry_host: REGISTRY,
 					username: "foo",
 					password: "bar",
 				});
@@ -250,11 +251,10 @@ describe("cloudchamber image list", () => {
 
 		msw.use(
 			http.post("*/registries/:domain/credentials", async ({ params }) => {
-				const domain = String(params["domain"]);
-				expect(domain === "docker.io");
+				expect(params.domain).toEqual(REGISTRY);
 				return HttpResponse.json({
 					account_id: "1234",
-					registry_host: "docker.io",
+					registry_host: REGISTRY,
 					username: "foo",
 					password: "bar",
 				});
@@ -292,11 +292,10 @@ describe("cloudchamber image list", () => {
 
 		msw.use(
 			http.post("*/registries/:domain/credentials", async ({ params }) => {
-				const domain = String(params["domain"]);
-				expect(domain === "docker.io");
+				expect(params.domain).toEqual(REGISTRY);
 				return HttpResponse.json({
 					account_id: "1234",
-					registry_host: "docker.io",
+					registry_host: REGISTRY,
 					username: "foo",
 					password: "bar",
 				});
@@ -336,11 +335,10 @@ describe("cloudchamber image list", () => {
 
 		msw.use(
 			http.post("*/registries/:domain/credentials", async ({ params }) => {
-				const domain = String(params["domain"]);
-				expect(domain === "docker.io");
+				expect(params.domain).toEqual(REGISTRY);
 				return HttpResponse.json({
 					account_id: "1234",
-					registry_host: "docker.io",
+					registry_host: REGISTRY,
 					username: "foo",
 					password: "bar",
 				});
@@ -398,11 +396,10 @@ describe("cloudchamber image list", () => {
 
 		msw.use(
 			http.post("*/registries/:domain/credentials", async ({ params }) => {
-				const domain = String(params["domain"]);
-				expect(domain === "docker.io");
+				expect(params.domain).toEqual(REGISTRY);
 				return HttpResponse.json({
 					account_id: "1234",
-					registry_host: "docker.io",
+					registry_host: REGISTRY,
 					username: "foo",
 					password: "bar",
 				});
@@ -458,11 +455,10 @@ describe("cloudchamber image list", () => {
 
 		msw.use(
 			http.post("*/registries/:domain/credentials", async ({ params }) => {
-				const domain = String(params["domain"]);
-				expect(domain === "docker.io");
+				expect(params.domain).toEqual(REGISTRY);
 				return HttpResponse.json({
 					account_id: "1234",
-					registry_host: "docker.io",
+					registry_host: REGISTRY,
 					username: "foo",
 					password: "bar",
 				});
@@ -479,11 +475,9 @@ describe("cloudchamber image list", () => {
 				});
 			}),
 			http.head("*/v2/:accountId/:image/manifests/:tag", async ({ params }) => {
-				expect(params["accountId"]).toEqual("some-account-id");
-				const image = String(params["image"]);
-				expect(image === "one");
-				const tag = String(params["tag"]);
-				expect(tag === "hundred");
+				expect(params.accountId).toEqual("some-account-id");
+				expect(params.image).toEqual("one");
+				expect(params.tag).toEqual("hundred");
 				return new HttpResponse("", {
 					status: 200,
 					headers: { "Docker-Content-Digest": "some-digest" },
@@ -492,11 +486,9 @@ describe("cloudchamber image list", () => {
 			http.delete(
 				"*/v2/:accountId/:image/manifests/:tag",
 				async ({ params }) => {
-					expect(params["accountId"]).toEqual("some-account-id");
-					const image = String(params["image"]);
-					expect(image === "one");
-					const tag = String(params["tag"]);
-					expect(tag === "hundred");
+					expect(params.accountId).toEqual("some-account-id");
+					expect(params.image).toEqual("one");
+					expect(params.tag).toEqual("hundred");
 					return new HttpResponse("", { status: 200 });
 				}
 			),
@@ -521,11 +513,10 @@ describe("cloudchamber image list", () => {
 
 		msw.use(
 			http.post("*/registries/:domain/credentials", async ({ params }) => {
-				const domain = String(params["domain"]);
-				expect(domain === "docker.io");
+				expect(params.domain).toEqual(REGISTRY);
 				return HttpResponse.json({
 					account_id: "1234",
-					registry_host: "docker.io",
+					registry_host: REGISTRY,
 					username: "foo",
 					password: "bar",
 				});

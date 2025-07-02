@@ -276,13 +276,14 @@ async function deleteTag(
 }
 
 async function getCreds(): Promise<string> {
-	return await ImageRegistriesService.generateImageRegistryCredentials(
-		getCloudflareContainerRegistry(),
-		{
-			expiration_minutes: 5,
-			permissions: ["pull", "push"] as ImageRegistryPermissions[],
-		}
-	).then(async (credentials) => {
-		return Buffer.from(`v1:${credentials.password}`).toString("base64");
-	});
+	const credentials =
+		await ImageRegistriesService.generateImageRegistryCredentials(
+			getCloudflareContainerRegistry(),
+			{
+				expiration_minutes: 5,
+				permissions: ["pull", "push"] as ImageRegistryPermissions[],
+			}
+		);
+
+	return Buffer.from(`v1:${credentials.password}`).toString("base64");
 }
