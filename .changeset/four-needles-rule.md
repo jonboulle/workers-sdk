@@ -1,5 +1,5 @@
 ---
-"wrangler": minor
+"wrangler": patch
 ---
 
-Prefix account ID to image name when deleting a container image
+Fix unauthorized errors on "containers images delete".
