@@ -218,7 +218,7 @@ async function listRepos(creds: string): Promise<string[]> {
 		},
 	});
 	if (!response.ok) {
-		console.log(JSON.stringify(response));
+		logger.log(JSON.stringify(response));
 		throw new Error(
 			`Failed to fetch repository catalog: ${response.status} ${response.statusText}`
 		);

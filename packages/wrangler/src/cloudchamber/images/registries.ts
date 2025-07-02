@@ -13,6 +13,7 @@ import {
 	ImageRegistryNotAllowedError,
 } from "@cloudflare/containers-shared";
 import { UserError } from "../../errors";
+import { logger } from "../../logger";
 import { pollRegistriesUntilCondition } from "../cli";
 import {
 	checkEverythingIsSet,
@@ -92,7 +93,7 @@ export const registriesCommand = (
 									is_public: body.public,
 								}
 							);
-							console.log(JSON.stringify(registry, null, 4));
+							logger.log(JSON.stringify(registry, null, 4));
 							return;
 						}
 
@@ -150,7 +151,7 @@ export const registriesCommand = (
 									] as ImageRegistryPermissions[],
 								}
 							);
-						console.log(credentials.password);
+						logger.log(credentials.password);
 					},
 					scope
 				)(args);
@@ -173,7 +174,7 @@ export const registriesCommand = (
 						const registry = await ImageRegistriesService.deleteImageRegistry(
 							imageArgs.domain
 						);
-						console.log(JSON.stringify(registry, null, 4));
+						logger.log(JSON.stringify(registry, null, 4));
 					},
 					scope
 				)(args);
@@ -190,7 +191,7 @@ export const registriesCommand = (
 						if (!interactWithUser(imageArgs)) {
 							const registries =
 								await ImageRegistriesService.listImageRegistries();
-							console.log(JSON.stringify(registries, null, 4));
+							logger.log(JSON.stringify(registries, null, 4));
 							return;
 						}
 						await handleListImageRegistriesCommand(args, config);
