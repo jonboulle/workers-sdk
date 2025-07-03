@@ -45,6 +45,24 @@ function dimInternalStackLine(line: string): string {
 	return line;
 }
 
+function formatError(error: unknown): string {
+	if (error instanceof Error && error.stack) {
+		let message = error.stack
+			.split("\n")
+			// Dim internal stack trace lines to highlight user code
+			.map(dimInternalStackLine)
+			.join("\n");
+
+		if (error.cause) {
+			message += `\nCaused by: ${formatError(error.cause)}`;
+		}
+
+		return message;
+	}
+
+	return error?.toString() ?? "";
+}
+
 export interface LogOptions {
 	prefix?: string;
 	suffix?: string;
@@ -94,15 +112,8 @@ export class Log {
 	error(message: Error): void {
 		if (this.level < LogLevel.ERROR) {
 			// Ignore message if it won't get logged
-		} else if (message.stack) {
-			// Dim internal stack trace lines to highlight user code
-			const lines = message.stack.split("\n").map(dimInternalStackLine);
-			this.logWithLevel(LogLevel.ERROR, lines.join("\n"));
 		} else {
-			this.logWithLevel(LogLevel.ERROR, message.toString());
-		}
-		if ((message as any).cause) {
-			this.error(prefixError("Cause", (message as any).cause));
+			this.logWithLevel(LogLevel.ERROR, formatError(message));
 		}
 	}
 
