@@ -1,5 +1,19 @@
 # wrangler
 
+## 4.23.1
+
+### Patch Changes
+
+- [#9821](https://github.com/cloudflare/workers-sdk/pull/9821) [`a447d67`](https://github.com/cloudflare/workers-sdk/commit/a447d6722a9eedca21d8c888db47954a9d81f906) Thanks [@WillTaylorDev](https://github.com/WillTaylorDev)! - Preview Aliases: Force alias generation to meet stricter naming requirements.
+
+  For cases where CI is requesting Wrangler to generate the alias based on the branch name, we want a stricter check around the generated alias name in order to avoid version upload failures. If a valid alias name was not able to be generated, we warn and do not provide an alias (avoiding a version upload failure).
+
+- [#9815](https://github.com/cloudflare/workers-sdk/pull/9815) [`1358034`](https://github.com/cloudflare/workers-sdk/commit/1358034ec2641118dd366a7b1b862dbb623ddf28) Thanks [@gpanders](https://github.com/gpanders)! - Remove --json flag from containers and cloudchamber commands (except for "images list")
+
+- [#9734](https://github.com/cloudflare/workers-sdk/pull/9734) [`1a58bc3`](https://github.com/cloudflare/workers-sdk/commit/1a58bc34d6ffa62fbcb9e8e15ebf61dcfd288659) Thanks [@penalosa](https://github.com/penalosa)! - Make Wrangler warn more loudly if you're missing auth scopes
+
+- [#9748](https://github.com/cloudflare/workers-sdk/pull/9748) [`7e3aa1b`](https://github.com/cloudflare/workers-sdk/commit/7e3aa1b774dfb971c2d22d5c054206b6f7542b39) Thanks [@alsuren](https://github.com/alsuren)! - Internal-only WRANGLER_D1_EXTRA_LOCATION_CHOICES environment variable for enabling D1's testing location hints
+
 ## 4.23.0
 
 ### Minor Changes
